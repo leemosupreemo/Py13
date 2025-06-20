@@ -60,13 +60,13 @@ class Killer:
   def player_move(self):
     print("{} make your move!".format(self.player_turn.name))
     self.player_turn.show_hand()
-    print("Options: [1] Single [2] Double [3] Triple [4] Run [5] Pass")  
+    print("Options: [1] Single [2] Double [3] Triple [4] Quadruple [5] Run [6] Double Run [7] Pass")
 
     move = 0
     still_move = True
     while still_move:
       move = int(input("Play: "))
-      if move < 6 and move > 0:
+      if move > 0 and move < 8:
         if move == 1:
           #play single
           card = 0
@@ -87,8 +87,8 @@ class Killer:
           else:
             print("Invalid card.")
             break
-        elif move == 2 or move == 3:
-          #play double or triple
+        elif move == 2 or move == 3 or move == 4:
+          #play multi card set
           cards = []
           while True:
             cards = input("Which cards? Separate by spaces. ")
@@ -96,7 +96,7 @@ class Killer:
             for card in cards:
               if card > self.player_turn.num_cards() or card < 0:
                 print("Invalid cards.")
-            result = self.player_turn.play_double_triple(cards, self.card_stack)
+            result = self.player_turn.play_multi(cards, self.card_stack)
             if result is not False:
               still_move = False
               self.card_stack = result
@@ -107,7 +107,7 @@ class Killer:
             else:
               print("Invalid move.")
               break
-        elif move == 4:
+        elif move == 5:
           #play run
           cards = []
           while True:
@@ -128,13 +128,34 @@ class Killer:
             else:
               print("Invalid move.")
               break
-        elif move == 5:
+        elif move == 6:
+          #play double run
+          cards = []
+          while True:
+            cards = input("Which cards? Separate by spaces. ")
+            cards = [int(i)-1 for i in cards.split()]
+            for card in cards:
+              if card > self.player_turn.num_cards() or card < 0:
+                print("Invalid cards.")
+            result = self.player_turn.play_double_run(cards, self.card_stack, \
+              self.prev_move)
+            if result is not False:
+              still_move = False
+              self.card_stack = result
+              self.change_player()
+              self.num_passes = 0
+              self.prev_move = move
+              break
+            else:
+              print("Invalid move.")
+              break
+        elif move == 7:
           #play pass
           self.change_player()
           self.num_passes += 1
           return
       else:
-        print("Invalid move. Select an option between 1-5.")
+        print("Invalid move. Select an option between 1-7.")
 
   def print_board(self):
     if self.card_stack == []:
