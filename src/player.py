@@ -49,14 +49,11 @@ class Player:
       return [player_card]
     return False
 
-  def valid_double_triple(self, player_cards, card_stack):
-    #in order for a double or triple to be valid the previous move must be a 
-    #pass, double/triple, and the card values must match. Cards being played
-    #must be of higher value than the cards in the stack
-    card_value_set = set()
-    for card in player_cards:
-      card_value_set.add(card.value)
-    if len(card_value_set) == 1:
+  def valid_multi(self, player_cards, card_stack):
+    # Validate a set of cards where all cards share the same value
+    # Works for pairs, triples and quads
+    card_value_set = {card.value for card in player_cards}
+    if len(card_value_set) == 1 and len(player_cards) in [2, 3, 4]:
       if card_stack == []:
         return True
       elif len(player_cards) == len(card_stack):
@@ -67,9 +64,9 @@ class Player:
           return True
     return False
 
-  def play_double_triple(self, cards, card_stack):
+  def play_multi(self, cards, card_stack):
     player_cards = [self.hand[card] for card in cards]
-    if self.valid_double_triple(player_cards, card_stack):
+    if self.valid_multi(player_cards, card_stack):
       self.remove_cards(player_cards)
       return player_cards
     return False
@@ -103,6 +100,43 @@ class Player:
   def play_run(self, cards, card_stack, prev_move):
     player_cards = [self.hand[card] for card in cards]
     if self.valid_run(player_cards, card_stack, prev_move):
+      self.remove_cards(player_cards)
+      return player_cards
+    return False
+
+  def valid_double_run(self, player_cards, card_stack, prev_move):
+    # Validate runs made up of consecutive pairs
+    if len(player_cards) < 6 or len(player_cards) % 2 != 0:
+      return False
+
+    # sort cards by value for easier checking
+    values = [card.value for card in player_cards]
+    # convert Ace to high value for sequence comparison
+    values = [14 if v == 1 else v for v in values]
+    pairs = []
+    for i in range(0, len(values), 2):
+      if values[i] != values[i+1]:
+        return False
+      pairs.append(values[i])
+
+    if 2 in pairs:
+      return False
+    if pairs != list(range(min(pairs), max(pairs)+1)):
+      return False
+
+    if card_stack == []:
+      return True
+    elif prev_move == 6 and len(player_cards) == len(card_stack):
+      player_high_card = deck.high_card(player_cards)
+      card_stack_high_card = deck.high_card(card_stack)
+      low_card = deck.compare_cards(player_high_card, card_stack_high_card)
+      if low_card == card_stack_high_card:
+        return True
+    return False
+
+  def play_double_run(self, cards, card_stack, prev_move):
+    player_cards = [self.hand[card] for card in cards]
+    if self.valid_double_run(player_cards, card_stack, prev_move):
       self.remove_cards(player_cards)
       return player_cards
     return False
